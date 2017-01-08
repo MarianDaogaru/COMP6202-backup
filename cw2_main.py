@@ -9,7 +9,7 @@ def rastrigin(xi):
     """
     n = 20
     return 3 * n + (xi * xi - 3 * numpy.cos(2 * numpy.pi * xi)).sum(axis=1)
-
+# b
 
 def schwefel(xi):
     """
@@ -46,6 +46,7 @@ def binary_create():
     xc[x<0.5] = 0
     return xc
 
+pow_2 = numpy.power(2, numpy.fliplr([numpy.arange(0, 15)])[0].astype(numpy.float64))
 
 def val_transt(xi, k):
     """trasnlate values"""
@@ -56,6 +57,14 @@ def val_transt1(xi, k):
     """trasnlate values"""
     p2 = numpy.power(2, numpy.fliplr([numpy.arange(k-15, k)])[0].astype(numpy.float64)) # gets the powers of 2
     return (-1)**xi[:,:,0] * numpy.dot(xi[:,:, 1:], p2)
+
+def vaL_tranf(xi):
+    """transf vals new """
+    (-1)**xi[:,0] * numpy.dot(xi[:, 1:], pow_2)
+
+def val_transf1(xi):
+    return (-1)**xi[:,:,0] * numpy.dot(xi[:,:, 1:], pow_2)
+
 
 def fit_prop_give_index(fitness):
     """
