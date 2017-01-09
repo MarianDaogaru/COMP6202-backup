@@ -273,10 +273,15 @@ def ccga_init_vals(n):
 
 
 def ccga(f, n, val):
+
+    iterations = 10**3
+
+
     max_val = f(numpy.ones((100, n)) * val)
     val = val / 2**15
     x_old = ccga_init_vals(n)
     f_val_init = numpy.zeros((n, 100))
+    f_val = numpy.zeros_like(f_val_init)
     rand_dist = numpy.random.randint(0, 100, (n, 100, n))
 
     indv = numpy.zeros((n, 100, n, 16))
@@ -291,8 +296,43 @@ def ccga(f, n, val):
     fitness = max_val - f_val_init
     best_ind = fitness.argmax(axis=1)
 
+    y = numpy.arange(0, n)
+    x_new = numpy.zeros_like(x_old)
 
+    results = numpy.zeros([iterations, n, 16]) #max fitness
+
+    #scaling window
+    scaling_w = numpy.ones(5) * max_val[0]
+    scaling_w[-1] = f_val_init.max()
+
+    for gen in range(iterations):
+        for i, x in numpy.ndenumerate(x_old[:, :, 0]):
+            indv[i[0], i[1], i[0]] = x_old[i]
+
+        for i in range(n):
+            f_val[i] = f(val_transf1(indv[i], val))
+
+        sct = deepcopy(scaling_w)
+        scaling_w[:4] = sct[1:]
+        scaling_w[-1] = f_val.max()
+        fitness = scaling_w.max() - f_val
+
+        elite = fitness.argmax(axis=1) # index of the elite
+        print(elite)
+        #print(fitness[elite], elite)
+#        tre = deepcopy(x_old[elite])
+#        for j in range(50):
+#            #remake the pop from old pop
+#            A = fit_prop_give_index(fitness) #so the closer you are to 0, the more chances there are
+#            B = fit_prop_give_index(fitness)
+#
+##            x_new[2*j] = mutation(x_old[A], x_old[B], k, val) #child1
+##            x_new[2*j+1] = mutation(x_old[A], x_old[B], k, val) #child2
+#            x_new[2*j], x_new[2*j+1] = mutation(x_old[A], x_old[B])
+
+        if gen % 100 == 0:
+            print(gen)
     #vals = f(val_transf1(rand_dist, val))
-    return rand_dist, indv, f_val_init, best_ind
+    return rand_dist, indv, f_val_init, best_ind, x_old
 
-z, aa, fv, bi = ccga(rastrigin, 20, 5.12)
+z, aa, fv, bi , xo= ccga(rastrigin, 20, 5.12)
