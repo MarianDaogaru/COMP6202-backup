@@ -288,7 +288,11 @@ def ccga(f, n, val):
 
     for i in range(n):
         f_val_init[i] = f(val_transf1(indv[i], val))
-    #vals = f(val_transf1(rand_dist, val))
-    return rand_dist, indv, f_val_init
+    fitness = max_val - f_val_init
+    best_ind = fitness.argmax(axis=1)
 
-z, aa, fv = ccga(rastrigin, 20, 5.12)
+
+    #vals = f(val_transf1(rand_dist, val))
+    return rand_dist, indv, f_val_init, best_ind
+
+z, aa, fv, bi = ccga(rastrigin, 20, 5.12)
