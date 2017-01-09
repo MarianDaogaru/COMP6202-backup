@@ -77,9 +77,11 @@ def fit_prop_give_index(fitness):
     return numpy.argmax(fitness.cumsum() >= random_fitness)
 
 
-def plot_GA(f, n, val, k):
-    X = ga_cross(f, n, val, k)
-    plt.plot(X)
+def plot_GA(f, x, val,lim):
+    plt.plot(f(val_transf1(x, val/2**15)))
+    plt.ylim(ymax=lim)
+    plt.show()
+
 
 "----- GA -----------"
 
@@ -154,22 +156,31 @@ def ga_init_vals(n):
 
 
 def ga_cross(f, n, val):
+    #make initial func vals
     max_val = f(numpy.ones((100, n)) * val)
     print(max_val)
     val /= 2**15
     x_old = ga_init_vals(n)
-    fitness = numpy.zeros(100)
-#    for i in range(100):
-#        fitness[i] = f(val_transt(x_old[i], k))
-    fitness = f(val_transf1(x_old, val))
+    f_val = f(val_transf1(x_old, val))
 
-    iterations = 10**5
-    results = np.zeros(iterations) #max fitness
+    iterations = 10**4
+    results = numpy.zeros([iterations, n, 16]) #max fitness
     x_new = numpy.zeros_like(x_old)
+
+    #scaling window
+    scaling_w = numpy.ones(5) * max_val[0]
+    scaling_w[-1] = f_val[f_val.argmax()]
+    print(scaling_w)
 
     #first try with just 2 children
     for i in range(iterations):
-        fitness = max_val - numpy.abs(f(val_transf1(x_old, val)))
+        f_val = numpy.abs(f(val_transf1(x_old, val)))
+        sct = deepcopy(scaling_w)
+        scaling_w[:4] = sct[1:]
+        scaling_w[-1] = f_val[f_val.argmax()]
+        fitness = scaling_w[scaling_w.argmax()] - f_val
+        if (fitness < 0).any():
+            print(fitness[fitness.argmin()])
         elite = fitness.argmax() # index of the elite
         #print(fitness[elite], elite)
         tre = deepcopy(x_old[elite])
@@ -183,11 +194,12 @@ def ga_cross(f, n, val):
             x_new[2*j], x_new[2*j+1] = mutation(x_old[A], x_old[B])
 
         # print(results.shape, results[i].shape, elite, fitness.argmin(),fitness[fitness.argmin()] )
-        results[i] = fitness[elite]
+        results[i] = x_old[elite]
 
 #        for j in range(100):
 #            fitness[j] = f(val_transt(x_new[j], k))
-        fitness_new = max_val - numpy.abs(f(val_transf1(x_new, val)))
+
+        fitness_new = scaling_w[scaling_w.argmax()] - numpy.abs(f(val_transf1(x_new, val)))
         not_so_elite = fitness_new.argmin()
         x_new[not_so_elite] = tre
         x_old = deepcopy(x_new)
@@ -202,7 +214,7 @@ def ga_cross(f, n, val):
             del(dat)
 
 
-    return results, x_old, fitness
+    return results
 
     """for i in range(100000):
         A = np.random.randint(0, 100)
@@ -261,11 +273,22 @@ def ccga_init_vals(n):
 
 
 def ccga(f, n, val):
+    max_val = f(numpy.ones((100, n)) * val)
     val = val / 2**15
-    x = ga_init_vals(n)
-    init_fit = numpy.zeros((n,100))
-    for i in range(100):
-        init_fit[i] = f(val_transt(x[i], k))
-        print(init_fit[i])
-    max_fit = init_fit[init_fit.argmin()]
-    results = np.zeros(100000)
+    x_old = ccga_init_vals(n)
+    f_val_init = numpy.zeros((n, 100))
+    rand_dist = numpy.random.randint(0, 100, (n, 100, n))
+
+    indv = numpy.zeros((n, 100, n, 16))
+    for i in range(n):
+        for j in range(100):
+            rand_dist[i, j, i] = j
+            for k in range(n):
+                indv[i,j,k]  = x_old[i, rand_dist[i,j, k]]
+
+    for i in range(n):
+        f_val_init[i] = f(val_transf1(indv[i], val))
+    #vals = f(val_transf1(rand_dist, val))
+    return rand_dist, indv, f_val_init
+
+z, aa, fv = ccga(rastrigin, 20, 5.12)
