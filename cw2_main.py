@@ -76,6 +76,15 @@ def fit_prop_give_index(fitness):
     random_fitness = numpy.random.uniform(0, total_fitness)
     return numpy.argmax(fitness.cumsum() >= random_fitness)
 
+def fit_prop_give_index_ccga(fitness):
+    """
+    fitness - array containing the fitness values of each stuff
+    """
+    fitness = numpy.abs(fitness)
+    total_fitness = (fitness).sum()
+    random_fitness = numpy.random.uniform(0, total_fitness)
+    return numpy.argmax(fitness.cumsum() >= random_fitness)
+
 
 def plot_GA(f, x, val,lim):
     plt.plot(f(val_transf1(x, val/2**15)))
@@ -158,12 +167,11 @@ def ga_init_vals(n):
 def ga_cross(f, n, val):
     #make initial func vals
     max_val = f(numpy.ones((100, n)) * val)
-    print(max_val)
     val /= 2**15
     x_old = ga_init_vals(n)
     f_val = f(val_transf1(x_old, val))
 
-    iterations = 10**4
+    iterations = 10**5
     results = numpy.zeros([iterations, n, 16]) #max fitness
     x_new = numpy.zeros_like(x_old)
 
@@ -206,7 +214,7 @@ def ga_cross(f, n, val):
 #        fitness_new = max_val - numpy.abs(f(val_transf1(x_new, val)))
 #        print(i,val,fitness_new[not_so_elite],fitness[fitness.argmax()] > fitness_new[fitness_new.argmax()], fitness[fitness.argmax()], fitness_new[fitness_new.argmax()], fitness_new.argmax())
 
-        if i % 100 == 0:
+        if i % 1000 == 0:
             print(i,fitness[fitness.argmax()] < fitness_new[fitness_new.argmax()], fitness[fitness.argmax()], fitness_new[fitness_new.argmax()], fitness_new.argmin())
             with open("{}.txt".format(f.__name__), 'a+') as dat:
                 dat.write(numpy.str(results[i]) + "\n") # just in case
@@ -318,21 +326,51 @@ def ccga(f, n, val):
         fitness = scaling_w.max() - f_val
 
         elite = fitness.argmax(axis=1) # index of the elite
-        print(elite)
-        #print(fitness[elite], elite)
-#        tre = deepcopy(x_old[elite])
+        tre = deepcopy(x_old[y, elite[y]])
+        print(fitness.shape)
 #        for j in range(50):
 #            #remake the pop from old pop
 #            A = fit_prop_give_index(fitness) #so the closer you are to 0, the more chances there are
 #            B = fit_prop_give_index(fitness)
-#
-##            x_new[2*j] = mutation(x_old[A], x_old[B], k, val) #child1
-##            x_new[2*j+1] = mutation(x_old[A], x_old[B], k, val) #child2
 #            x_new[2*j], x_new[2*j+1] = mutation(x_old[A], x_old[B])
 
         if gen % 100 == 0:
             print(gen)
     #vals = f(val_transf1(rand_dist, val))
-    return rand_dist, indv, f_val_init, best_ind, x_old
+    return rand_dist, indv, f_val_init, best_ind, x_old, fitness
 
-z, aa, fv, bi , xo= ccga(rastrigin, 20, 5.12)
+# z, aa, fv, bi , xo, ft= ccga(rastrigin, 20, 5.12)
+
+
+def get_data():
+    rast_rest = ga_cross(rastrigin, 20, 5.12)
+    msg = ""
+    for i in range(10**5):
+        msg += str(rast_rest[i]) + "\n"
+
+    with open("rastrigin.txt", 'w') as dat:
+        dat.write(msg) # just in case
+
+    sch_rest = ga_cross(schwefel, 10, 500)
+    msg = ""
+    for i in range(10**5):
+        msg += str(sch_rest[i]) + "\n"
+
+    with open("schwefel.txt", 'w') as dat:
+        dat.write(msg) # just in case
+
+    gr = ga_cross(griewangk, 10, 600)
+    msg = ""
+    for i in range(10**5):
+        msg += str(gr[i]) + "\n"
+
+    with open("griewangk.txt", 'w') as dat:
+        dat.write(msg) # just in case
+
+    ack = ga_cross(ackley, 30, 30)
+    msg = ""
+    for i in range(10**5):
+        msg += str(ack[i]) + "\n"
+
+    with open("ackley.txt", 'w') as dat:
+        dat.write(msg) # just in case
