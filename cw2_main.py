@@ -86,6 +86,16 @@ def fit_prop_give_index_ccga(fitness):
     return numpy.argmax(fitness.cumsum() >= random_fitness)
 
 
+def fit_prop_give_index_ccga1(fitness):
+    """
+    fitness - array containing the fitness values of each stuff
+    """
+    fitness = numpy.abs(fitness)
+    total_fitness = (fitness).sum(axis=1)
+    random_fitness = numpy.random.uniform(0, total_fitness)
+    print(random_fitness)
+    return numpy.argmax(fitness.cumsum(axis=1) >= random_fitness)
+
 def plot_GA(f, x, val,lim):
     plt.plot(f(val_transf1(x, val/2**15)))
     plt.ylim(ymax=lim)
@@ -327,7 +337,6 @@ def ccga(f, n, val):
 
         elite = fitness.argmax(axis=1) # index of the elite
         tre = deepcopy(x_old[y, elite[y]])
-        print(fitness.shape)
 #        for j in range(50):
 #            #remake the pop from old pop
 #            A = fit_prop_give_index(fitness) #so the closer you are to 0, the more chances there are
@@ -339,7 +348,7 @@ def ccga(f, n, val):
     #vals = f(val_transf1(rand_dist, val))
     return rand_dist, indv, f_val_init, best_ind, x_old, fitness
 
-# z, aa, fv, bi , xo, ft= ccga(rastrigin, 20, 5.12)
+#z, aa, fv, bi , xo, ft= ccga(rastrigin, 20, 5.12)
 
 
 def get_data():
